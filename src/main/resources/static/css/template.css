@@ -1,0 +1,457 @@
+/**************************************************
+    Estrutura da Aplicacao
+***************************************************/
+
+/* Sticky Footer */
+html {
+  position: relative;
+  min-height: 100%;  
+}
+body {
+  margin-bottom: 25px; /* Margin bottom by footer height */
+  font-family: roboto, verdana, sans-serif;
+  font-size: 12px;
+}
+#footer {
+  position: absolute;
+  bottom: 0;
+  
+  width: 100%;
+  height: 25px; /* Set the fixed height of the footer here */
+  text-align: center;
+  vertical-align: middle;
+  border-top: #EBEBEB 1px solid;
+  color: #999;
+  font-size: 11px;  
+}
+
+
+
+
+/**************************************************
+Funcionalidades da Aplicacao
+***************************************************/
+.center-form{
+	margin: auto;
+	width: 350px;
+}
+
+.center-form-account{
+    margin: auto;
+    width: 500px;
+}
+
+.home-form{
+	margin: 10px 0px 20px 0px;
+}
+.home-form input:focus { /*efeito da borda copiado do bootstrap*/
+  border-color: #66afe9;
+  outline: 0;
+  -webkit-box-shadow: inset 0 1px 1px rgba(0,0,0,.075), 0 0 8px rgba(102, 175, 233, .6);
+  box-shadow: inset 0 1px 1px rgba(0,0,0,.075), 0 0 8px rgba(102, 175, 233, .6);    
+}
+.home-form input{
+    color: #fff;
+    background-color: #3276b1;
+    border-color: #285e8e;
+    height: 40px;
+    margin-left: 50px;
+    font-size: 14px;
+}
+.home-form input:hover  {
+    background-color: #2b50a8;
+}
+
+.home-form input:disabled  {
+    background-color: #c3c3c3;
+    color: #fff;
+    border-color: #e8e8e8;
+}
+
+.block-list ul{
+	display:inline;
+    margin: 0;
+    padding:0;	
+}
+.block-list li{
+    display:inline;
+    margin-right: 5px;
+}
+/*Definir a fonte do Menu*/
+ul.f-menu-horizontalllll{
+    font-size:12px;
+    font-weight:bold;
+    margin: 0;
+    padding:0;
+    list-style: none;
+    display:inline;
+}
+/* dropdown de Primeiro nivel*/
+ul.f-menu-horizontallll li {
+    height: 30px;
+    float:left; 
+    position:relative;  
+    padding-left:12px; 
+    list-style: none; 
+    z-index: 99;
+}
+
+
+
+
+/****************************************
+ Customizacao Geral para Links
+ ****************************************/
+
+a img {border:none;}
+a:focus, a:hover {color:#0000FF;}
+a {color:#06c;text-decoration:underline;} /*#06c*/
+
+
+header{
+	border-bottom: 1px solid #EBEBEB; 
+	/*margin-top: 5px;*/
+}
+.f-header-wrap{
+    /*border-bottom: 1px solid #EBEBEB;*/  
+    height: 100px; 
+    width:100%;
+}
+.f-header-logo{
+	float:left;
+	background: url(../image/header.png) top left no-repeat ; 
+	height: 100px; 
+    width:350px;
+}
+.f-header-right {
+    float: right;
+}
+.f-header-right a {
+    color:#06c;
+    text-decoration:none;
+    margin: 0px 10px 0px 0px;
+    font-size: 14px;
+}
+.f-header-right a:hover{
+	color:#004080;
+    text-decoration:underline;
+}
+.f-header-right a:focus {
+	color:#06c;
+}
+.f-header-data {
+	display: inline-block;
+    font-weight:normal;
+    margin:8px;
+    font-size: 12px;
+    opacity: .5;
+}
+
+
+
+
+/* ============================================= */ 
+/*                                               */
+/*        MENU HORIZONTAL CSS                    */
+/*                                               */
+/* ============================================= */
+
+/*Definir a fonte do Menu*/
+ul.f-menu-horizontal{
+	font-size:12px;
+	font-weight:bold;
+	margin: 0;
+	padding:0;
+	list-style: none;
+	display:inline;
+}
+/* dropdown de Primeiro nivel*/
+ul.f-menu-horizontal li {
+	height: 30px;
+	float:left; 
+	position:relative;	
+	padding-left:12px; 
+	list-style: none; 
+	z-index: 99;
+}
+/* items do menu principal */
+ul.f-menu-horizontal li a, ul.f-menu-horizontal li span {
+    line-height:30px; 
+	display:block;
+	text-decoration:none;
+	text-align:center;
+	border-bottom: 0;
+	overflow:hidden;
+	padding-left: 1px;
+	padding-right:12px;
+}
+ul.f-menu-horizontal li:hover a{
+	color:#043454;
+}
+
+/* Menu Dropdown de primeiro nivel */
+ul.f-menu-horizontal li ul {
+    display: none; 
+}
+ul.f-menu-horizontal li:hover ul{
+	width:155px; 
+    display:block; 
+    position:absolute; 
+    top:29px; 
+    left:0; 
+    margin: 0; 
+    padding:4px 0 0 0; 
+    background-color: #fff; 
+    border: 1px solid rgba(0,0,0,.15);
+    border-radius: 4px;
+    -webkit-box-shadow: 0 6px 12px rgba(0,0,0,.175);
+    box-shadow: 0 6px 12px rgba(0,0,0,.175);
+    background-clip: padding-box;    
+}
+ul.f-menu-horizontal li ul li {
+	width:153px;
+    float:left; 
+    position:relative; 
+    padding:0; 
+    margin:0;
+    border: none; 
+    height: 22px;
+    /*background: url("../image/dot.gif") repeat-x bottom;*/
+}
+ul.f-menu-horizontal li ul li.divider, .divider {
+  width:153px;
+  height: 1px !important;
+  margin: 0px 0px 5px 0 !important;
+  overflow:hiden;
+  background-color: #e5e5e5;
+  padding: 0 !important;
+}
+ul.f-menu-horizontal li:hover ul li a{
+	/*font-weight: normal;*/
+	font-size: 11px;
+    display:block;
+    color:#286EA0;
+    line-height: 20px;
+    width: 144px;
+    text-align: left;
+    margin: 0;
+    padding: 0 0 0 18px;
+}
+ul.f-menu-horizontal li:hover ul li a:hover{
+    color:#fff; 
+}
+ul.f-menu-horizontal li:hover ul li:hover{
+	background-color: #40799F;
+}
+/* dropdown de Segundo nivel*/
+ul.f-menu-horizontal li ul li ul {display: none;}
+ul.f-menu-horizontal li:hover ul li ul{display: none;}  /* dropdown de Segundo nivel*/
+ul.f-menu-horizontal li:hover ul li:hover ul{
+	display:block; 
+	position:absolute; 
+	left:150px; 
+	top:0;
+}
+
+
+
+/**************************************************
+  FORMs 
+ **************************************************/
+ .form-error{
+    display: block;
+    color: red;
+ }
+.f-form {
+    font-size: 12px;
+}
+.f-form legend{
+    font-size:16px; 
+}
+.red-text { color: #DA3838; font-weight: bold; }
+.green-text { color: #008000; font-weight: bold;  }
+.blue-text { color: #0000FF; font-weight: bold; }
+
+.f-form .f-checkbox{
+    display: inline-block; 
+    width: 128px; 
+    margin-right: 10px; 
+}
+.f-form .f-checkbox  label{
+    display: inline-block; 
+    width: 110px; 
+    text-align: left;
+}
+.f-form .f-checkbox  input{
+    margin: 0px;
+    padding: 0px;
+}
+.f-form  .labelUp.input05  label input,  .f-form .labelUp.input05 label select{
+    width: 65px;
+}
+.f-form  .labelUp.input2  label {
+    width: 280px;
+}
+.f-form .labelUp {
+	display: inline-block;
+	margin: 0px 15px 0px 0px;
+}
+.f-form .labelUp label{
+    display:inline-block; 
+    width: 130px; 
+    vertical-align: middle;
+}
+.f-form .labelUp label input,  .f-form .labelUp label select{
+    display:block; 
+    font-weight: normal; 
+    width:100%;
+    margin: 0px;
+}
+
+.f-form  .labelBefore{
+	width: 255px;
+}
+.f-form  .labelBefore.input05{
+    width: 190px;
+}
+.f-form  .labelBefore.input05  input,  .f-form .labelBefore.input05 select{
+    width: 65px ;
+}
+.f-form  .labelBefore.input2{
+    width: 395px;
+}
+.f-form .labelBefore.input2 input , .f-form .labelBefore.input2 textarea,  .f-form .labelBefore.input2 select {
+    width: 270px;
+}
+.f-form  .labelBefore.input4{
+    width: 800px;
+}
+.f-form .labelBefore.input4 input , .f-form .labelBefore.input4 textarea,  .f-form .labelBefore.input4 select {
+    width: 675px;
+}
+.f-form .labelBefore {
+    display: inline-block;
+    margin: 0px 15px 0px 0px;
+}
+.f-form .labelBefore label{
+    display: inline-block; 
+    width: 110px; 
+    text-align: right;
+    margin-right: 10px;
+}
+.f-form .labelBefore input, .f-form .labelBefore textarea,  .f-form .labelBefore select{
+    display:inline-block; 
+    font-weight: normal; 
+    width:130px;
+    margin: 0px;
+}
+@media (max-width: 768px) { 
+    .f-form .labelUp
+    {
+        width:100%;
+        display: block;
+    }
+    .f-form .labelUp label, .f-form .labelUp label input,  .f-form .labelUp label select {
+        width:100% !important;
+    }
+    .f-form .labelBefore
+    {
+        width:100% !important;
+        display: block;
+    }
+    .f-form .labelBefore label, .f-form .labelBefore input, .f-form .labelBefore textarea,  .f-form .labelBefore select{
+        width:100% !important;
+        text-align: left;
+    }
+}
+.f-form * {
+  -webkit-box-sizing: border-box;
+  -moz-box-sizing: border-box;
+  box-sizing: border-box;   
+}
+.f-form  a {
+    vertical-align: bottom;
+    text-decoration: none;
+}
+.f-form a input[type=text] {
+    border-bottom: #0066CC 2px solid;
+    text-decoration: none;
+}
+.f-form span{
+    vertical-align: middle;
+}
+.f-form legend {
+    font-weight:bold;
+    border:0;
+    margin: 0;
+    padding: 0 3px 0 3px;
+    width: auto;    
+}
+.f-form fieldset {
+    /*padding:1.4em 1.4em 1.4em 1.4em;*/
+    padding: 15px;
+    margin:0;
+    margin-bottom:10px;
+    border:1px solid #ccc;
+}
+.f-form p{
+    margin-bottom: 10px;;
+}
+.f-form label {
+    color: #666666;
+    font-weight: bold;
+}
+
+.f-form select, 
+.f-form textarea,
+.f-form input{
+    background-color: #FFFFFF;
+    color: #666666;
+    vertical-align: middle;
+    border: #D6D6D6 1px solid;
+    border-radius: 3px;
+}
+.f-form input, .f-form textarea, .f-form select{
+     padding-left: 5px;
+}
+.f-form input, .f-form select{
+     height: 25px;
+}
+.f-form input[readonly=readonly] {
+    background-color: #EBEBEB;
+}
+.f-form select:focus,
+.f-form textarea:focus, 
+.f-form input:focus { /*efeito da borda copiado do bootstrap*/
+  border-color: #66afe9;
+  outline: 0;
+  -webkit-box-shadow: inset 0 1px 1px rgba(0,0,0,.075), 0 0 8px rgba(102, 175, 233, .6);
+  box-shadow: inset 0 1px 1px rgba(0,0,0,.075), 0 0 8px rgba(102, 175, 233, .6);    
+}
+.f-form input[type=submit], 
+.f-form input[type=button] , 
+.f-form input[type=reset]  {
+	/*
+    color: #333333;
+    font-weight: bold;
+    background: url(../image/buttom_bg.gif) bottom repeat-x;
+    */
+    color: #fff;
+    background-color: #3276b1;
+    border-color: #285e8e;
+    height: 30px;
+}
+.f-form input[type=submit]:hover, 
+.f-form input[type=button]:hover , 
+.f-form input[type=reset]:hover  {
+    background-color: #2b50a8;
+}
+.f-form .offset{
+	display: inline-block;
+	width: 120px;
+	margin: 0;
+	padding: 0;
+}
+
+
+
