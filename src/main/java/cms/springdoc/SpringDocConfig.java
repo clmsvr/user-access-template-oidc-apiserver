@@ -64,8 +64,9 @@ Swagger - SpringDoc
                 authorizationUrl = "${springdoc.oAuthFlow.authorizationUrl}",
                 tokenUrl = "${springdoc.oAuthFlow.tokenUrl}",
                 scopes = {
-                        @OAuthScope(name = "read", description = "read scope"),
-                        @OAuthScope(name = "write", description = "write scope")
+                        @OAuthScope(name = "profile", description = "profile scope"),
+                        @OAuthScope(name = "email", description = "email scope"),
+                        @OAuthScope(name = "openid", description = "openid scope")
                 }
         )))
 //26.3

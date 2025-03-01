@@ -9,9 +9,11 @@ import cms.api.model.input.UserInputUpdate;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.parameters.RequestBody;
+import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.tags.Tag;
 
 @Tag(name = "Usuários")
+@SecurityRequirement(name = "security_auth")
 public interface UserControllerDoc {
 
 	//Na minha opnião não precisamos definir NENHUMA resposta, como feito para exemplificar abaixo.
