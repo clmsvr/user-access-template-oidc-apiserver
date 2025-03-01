@@ -9,19 +9,21 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import cms.api.doc.AuthorityControllerDoc;
 import cms.api.model.AuthorityModel;
 import cms.domain.model.Authority;
 import cms.repository.AuthorityRepository;
 
 @RestController()
 @RequestMapping("/api/authorities")
-public class AuthorityController {
+public class AuthorityController implements AuthorityControllerDoc {
 
 	@Autowired
 	AuthorityRepository rep;
 	@Autowired
 	ModelMapper modelMapper;
 	
+	@Override
 	@GetMapping
 	public List<AuthorityModel>  list()
 	{

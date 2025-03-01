@@ -1,10 +1,14 @@
 package cms.api.model.input;
 
-import lombok.Data;
+import jakarta.validation.constraints.NotBlank;
+import lombok.Getter;
+import lombok.Setter;
 
-@Data
+@Getter
+@Setter
 public class RoleInput
 {
+	@NotBlank
     private String name;
     private String description;
     

@@ -14,29 +14,26 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
 
+import cms.api.doc.UserControllerDoc;
 import cms.api.model.UserModel;
 import cms.api.model.UserRoleModel;
-import cms.api.model.input.UserInput;
+import cms.api.model.input.UserInputCreate;
+import cms.api.model.input.UserInputUpdate;
 import cms.domain.model.User;
 import cms.domain.model.UserRole;
 import cms.domain.model.UserUpdateDto;
 import cms.domain.service.UserService;
-import cms.exceptions.InUseException;
-import cms.exceptions.NotFoundException;
 import cms.repository.UserRepository;
 import cms.repository.UserRoleRepository;
 import jakarta.validation.Valid;
-import software.amazon.awssdk.services.cognitoidentityprovider.model.CognitoIdentityProviderException;
-import software.amazon.awssdk.services.cognitoidentityprovider.model.InvalidParameterException;
-import software.amazon.awssdk.services.cognitoidentityprovider.model.UserNotFoundException;
-import software.amazon.awssdk.services.cognitoidentityprovider.model.UsernameExistsException;
 
 @RestController()
 @RequestMapping("/api/users")
-public class UserController {
+public class UserController implements UserControllerDoc {
 
 	@Autowired
 	UserRepository userRep;
@@ -48,8 +45,9 @@ public class UserController {
 	private ModelMapper modelMapper;
 	
 	
+	@Override
 	@GetMapping
-	public List<UserModel>  list(String email)
+	public List<UserModel>  list(@RequestParam(required = false) String email)
 	{
 		List<User> list = null;
 		if (StringUtils.hasText(email)) 
@@ -65,6 +63,7 @@ public class UserController {
 				.collect(Collectors.toList()); 
 	}
 	
+	@Override
 	@GetMapping("/{oidcId}")
 	public UserRoleModel  recover(@PathVariable String oidcId){
 		
@@ -75,9 +74,10 @@ public class UserController {
 		return modelMapper.map(user, UserRoleModel.class);
 	}
 	
+	@Override
 	@PostMapping
 	@ResponseStatus(HttpStatus.CREATED)
-	public UserModel create(@RequestBody @Valid UserInput user) 
+	public UserModel create(@RequestBody @Valid UserInputCreate user) 
 	{
 		User domainUser = modelMapper.map(user, User.class);
 		
@@ -87,9 +87,10 @@ public class UserController {
 	}
 	
 	
+	@Override
 	@PutMapping("/{oidcId}")
 	public UserModel update(@PathVariable String oidcId,
-			                @RequestBody @Valid UserInput userInput) 
+			                @RequestBody @Valid UserInputUpdate userInput) 
 	{
 		UserUpdateDto dto = modelMapper.map(userInput, UserUpdateDto.class);
 		
@@ -99,6 +100,7 @@ public class UserController {
 	}
 
 	
+	@Override
 	@DeleteMapping("/{oidcId}")
 	@ResponseStatus(value = HttpStatus.NO_CONTENT)
 	public void delete(@PathVariable String oidcId) 

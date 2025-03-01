@@ -14,6 +14,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
 
+import cms.api.doc.RoleAuthorityControllerDoc;
 import cms.api.model.AuthorityModel;
 import cms.domain.model.Authority;
 import cms.domain.model.Role;
@@ -22,7 +23,7 @@ import cms.repository.RoleRepository;
 
 @RestController
 @RequestMapping(value = "/api/roles/{roleId}/authorities")
-public class RoleAuthorityController{
+public class RoleAuthorityController implements RoleAuthorityControllerDoc{
 
 	@Autowired
 	RoleService roleService;
@@ -31,6 +32,7 @@ public class RoleAuthorityController{
 	@Autowired
 	ModelMapper modelMapper;
 	
+	@Override
 	@GetMapping
 	public List<AuthorityModel> list(@PathVariable Long roleId) {
 		
@@ -42,6 +44,7 @@ public class RoleAuthorityController{
 			.collect(Collectors.toList());
 	}
 	
+	@Override
 	@DeleteMapping("/{authorityId}")
 	@ResponseStatus(HttpStatus.NO_CONTENT)
 	public void unlinkAuthority(
@@ -51,6 +54,7 @@ public class RoleAuthorityController{
 		roleService.unlinkAuthority(roleId, authorityId);
 	}
 	
+	@Override
 	@PutMapping("/{authorityId}")
 	@ResponseStatus(HttpStatus.NO_CONTENT)
 	public void linkAuthority(

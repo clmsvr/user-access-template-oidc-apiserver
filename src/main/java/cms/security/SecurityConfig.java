@@ -59,7 +59,7 @@ public class SecurityConfig {
 		http
 			.authorizeHttpRequests((requests) -> 
 				requests
-					.requestMatchers("/","/error","/api/**","/bootstrap/**","/css/**","/fonts/**","/image/**","/js/**")
+					.requestMatchers("/","/error","/swagger-ui/**", "/v3/api-docs/**","/api/**","/bootstrap/**","/css/**","/fonts/**","/image/**","/js/**")
 					.permitAll()
 					.requestMatchers("/user/mng/*").authenticated()
 					.requestMatchers("/admin/**").hasRole("Admin") //usando "/admin/*" '/admin' NAO estará incluso, somente paths abaixo.

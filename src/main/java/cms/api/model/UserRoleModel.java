@@ -22,14 +22,10 @@ public class UserRoleModel
 {
 	//private Long id;
 	
-	@NotBlank
 	private String oidcId;
-	@NotBlank
 	private String providerName; 
 	
-	@NotBlank
     private String email; 
-	@NotBlank
     private String name;
 	
     private String city;

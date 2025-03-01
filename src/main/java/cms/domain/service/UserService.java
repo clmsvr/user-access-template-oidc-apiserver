@@ -8,6 +8,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import cms.components.Cognito;
+import cms.domain.Consts;
 import cms.domain.model.User;
 import cms.domain.model.UserRole;
 import cms.domain.model.UserUpdateDto;
@@ -67,6 +68,9 @@ public class UserService
 		
 		domainUser.setId(null);
 		domainUser.setOidcId(oidcId);
+		domainUser.setProviderName(Consts.LOCAL_PROVIDER_NAME);
+		if(domainUser.getState() != null) domainUser.setState(domainUser.getState().toUpperCase());
+		
 		domainUser = userRep.save(domainUser);
 		
 		return domainUser;
@@ -77,8 +81,9 @@ public class UserService
 	throws NotFoundException
 	{
 		User domainUser = recoverUser(oidcId);
-
+		
 		modelMapper.map(dto, domainUser);
+		if(domainUser.getState() != null) domainUser.setState(domainUser.getState().toUpperCase());
 		
 		domainUser = userRep.save(domainUser);		
 		return domainUser;
@@ -89,7 +94,7 @@ public class UserService
     throws UserNotFoundException, CognitoIdentityProviderException,
            NotFoundException, InUseException
 	{
-		User domainUser = userRep.findByOidcId(oidcId);
+		UserRole domainUser = userRoleRep.findByOidcId(oidcId); //tem que ser o objeto completo, pois o delete precisa conhecer os relacionamentos para limpar.
 		
 		if(domainUser == null)
 			throw new NotFoundException( String.format(MSG_NOT_FOUND, oidcId));
@@ -97,14 +102,14 @@ public class UserService
 		try {
 			
 			//If the entity is not found in the persistence store it is silently ignored.
-			userRep.deleteById(domainUser.getId());
+			userRoleRep.deleteById(domainUser.getId());
 			
 			//11.21
 			//por causa do agora estendido contexto transacional, nao ha garantias de que a 
 			//operação vai ser executada agora para capturarmos as exceptions. 
 			//Nao estamos capturando as exceptions. operaçoes estao enfileiradas no EntityManager
 			//Precisamos usar o comit() para executar as operacoes e capturarmos as exceptions.
-			userRep.flush();
+			userRoleRep.flush();
 		} 
 		catch (EmptyResultDataAccessException e) //nao é mais lancada
 		{ 

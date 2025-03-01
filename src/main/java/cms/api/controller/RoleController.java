@@ -16,6 +16,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
 
+import cms.api.doc.RoleControllerDoc;
 import cms.api.model.RoleModel;
 import cms.api.model.input.RoleInput;
 import cms.domain.model.Role;
@@ -25,7 +26,7 @@ import jakarta.validation.Valid;
 
 @RestController()
 @RequestMapping("/api/roles")
-public class RoleController {
+public class RoleController implements RoleControllerDoc {
 
 	@Autowired
 	RoleRepository roleRep;
@@ -34,6 +35,7 @@ public class RoleController {
 	@Autowired
 	RoleService roleService;
 	
+	@Override
 	@GetMapping
 	public List<RoleModel>  list()
 	{
@@ -44,6 +46,7 @@ public class RoleController {
 				.collect(Collectors.toList()); 
 	}
 	
+	@Override
 	@GetMapping("/{id}")
 	public RoleModel  recover(@PathVariable long id){
 
@@ -62,6 +65,7 @@ public class RoleController {
 //		return ResponseEntity.ok(modelMapper.map(op.get(), RoleModel.class));
 //	}	
 	
+	@Override
 	@PostMapping
 	@ResponseStatus(HttpStatus.CREATED)
 	public RoleModel create(@RequestBody @Valid RoleInput input) {
@@ -71,6 +75,7 @@ public class RoleController {
 	}
 	
 	
+	@Override
 	@PutMapping("/{id}")
 	public RoleModel update(@PathVariable long id,
 			                @RequestBody @Valid RoleInput input) 
@@ -107,6 +112,7 @@ public class RoleController {
 //	}
 	
 	
+	@Override
 	@DeleteMapping("/{id}")
 	@ResponseStatus(value = HttpStatus.NO_CONTENT)
 	public void delete(@PathVariable long  id) 

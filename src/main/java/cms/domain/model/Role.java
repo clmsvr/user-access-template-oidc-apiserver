@@ -11,6 +11,7 @@ import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.JoinTable;
 import jakarta.persistence.ManyToMany;
+import jakarta.validation.constraints.NotBlank;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 
@@ -24,6 +25,7 @@ public class Role
 	@GeneratedValue(strategy = GenerationType.IDENTITY) 
 	private Long id;
 	
+	@NotBlank
     private String name;
     private String description;
     
