@@ -1,8 +1,18 @@
 package cms.components;
 
+import java.time.OffsetDateTime;
+import java.time.ZoneOffset;
+import java.util.ArrayList;
+import java.util.HashMap;
+
+import org.springframework.security.oauth2.core.user.OAuth2User;
 import org.springframework.stereotype.Component;
 import org.springframework.util.StringUtils;
 
+import com.nimbusds.jose.shaded.gson.internal.LinkedTreeMap;
+
+import cms.domain.Consts;
+import cms.domain.model.User;
 import jakarta.annotation.PostConstruct;
 import jakarta.annotation.PreDestroy;
 import software.amazon.awssdk.auth.credentials.AwsBasicCredentials;
@@ -12,11 +22,15 @@ import software.amazon.awssdk.services.cognitoidentityprovider.CognitoIdentityPr
 import software.amazon.awssdk.services.cognitoidentityprovider.model.AdminCreateUserRequest;
 import software.amazon.awssdk.services.cognitoidentityprovider.model.AdminCreateUserResponse;
 import software.amazon.awssdk.services.cognitoidentityprovider.model.AdminDeleteUserRequest;
+import software.amazon.awssdk.services.cognitoidentityprovider.model.AdminGetUserRequest;
+import software.amazon.awssdk.services.cognitoidentityprovider.model.AdminGetUserResponse;
 import software.amazon.awssdk.services.cognitoidentityprovider.model.AttributeType;
 import software.amazon.awssdk.services.cognitoidentityprovider.model.ChangePasswordRequest;
 import software.amazon.awssdk.services.cognitoidentityprovider.model.CognitoIdentityProviderException;
 import software.amazon.awssdk.services.cognitoidentityprovider.model.InvalidParameterException;
 import software.amazon.awssdk.services.cognitoidentityprovider.model.InvalidPasswordException;
+import software.amazon.awssdk.services.cognitoidentityprovider.model.ListUsersRequest;
+import software.amazon.awssdk.services.cognitoidentityprovider.model.ListUsersResponse;
 import software.amazon.awssdk.services.cognitoidentityprovider.model.NotAuthorizedException;
 import software.amazon.awssdk.services.cognitoidentityprovider.model.PasswordResetRequiredException;
 import software.amazon.awssdk.services.cognitoidentityprovider.model.UnsupportedUserStateException;
@@ -136,7 +150,7 @@ public class Cognito {
         AdminCreateUserRequest request = builder.build();
         
         //execução
-        AdminCreateUserResponse response = client.adminCreateUser(request);
+       client.adminCreateUser(request);
 	}	
 	
 	public void removeUser(String iodcId)
@@ -164,5 +178,110 @@ public class Cognito {
                 .build() ; 
         
     	client.changePassword(userRequest);
+	}
+	
+	
+	public HashMap<String, User> mapUsers(){
+		
+		return mapUsers(null);
+	}
+	
+	public HashMap<String,User> mapUsers(String email)
+	throws CognitoIdentityProviderException		
+	{
+		ListUsersRequest.Builder usersRequest = ListUsersRequest.builder()
+                .userPoolId(properties.getPoolId());
+				
+		if (StringUtils.hasText(email)) 
+		{
+	        usersRequest.filter(String.format("email = \"%s\"", email));
+		}
+		
+        ListUsersResponse response = client.listUsers(usersRequest.build());
+        
+        HashMap<String,User> map = new HashMap<>();
+        
+        response.users().forEach(user -> {
+        	var domainUser = new User();
+        	
+        	OffsetDateTime off = user.userCreateDate().atOffset(ZoneOffset.of("-00:00"));
+        	//ZonedDateTime zoned = off.atZoneSameInstant(ZoneId.of("-00:00"));
+        	domainUser.setCreationDate(off.toLocalDateTime());
+        	
+        	off = user.userLastModifiedDate().atOffset(ZoneOffset.of("-00:00"));
+        	//zoned = off.atZoneSameInstant(ZoneId.systemDefault());
+        	domainUser.setUpdateDate(off.toLocalDateTime());
+        	
+        	domainUser.setProviderName(Consts.LOCAL_PROVIDER_NAME);
+        	if (user.userStatus() == null || user.userStatus().equals("EXTERNAL_PROVIDER"))
+        	{
+        		domainUser.setProviderName("EXTERNAL");
+        	}
+        	
+            user.attributes().stream().forEach( att -> {
+            	if (att.name().equals("name")) domainUser.setName(att.value());
+            	if (att.name().equals("email")) domainUser.setEmail(att.value());
+            	if (att.name().equals("sub")) domainUser.setOidcId(att.value());
+            	if (att.name().equals("identities")) domainUser.setProviderName("EXTERNAL");
+            });
+            
+            map.put(domainUser.getOidcId(), domainUser);
+        });
+        
+        return map;
+	}
+	
+	public User getUser(String cognitoUserId)
+	throws UserNotFoundException, CognitoIdentityProviderException		
+	{
+        AdminGetUserRequest userRequest = AdminGetUserRequest.builder()
+                .username(cognitoUserId)
+                .userPoolId(properties.getPoolId())
+                .build();
+
+        AdminGetUserResponse user = client.adminGetUser(userRequest);
+        
+       	var domainUser = new User();
+    	
+    	OffsetDateTime off = user.userCreateDate().atOffset(ZoneOffset.of("-00:00"));
+    	//ZonedDateTime zoned = off.atZoneSameInstant(ZoneId.of("-00:00"));
+    	domainUser.setCreationDate(off.toLocalDateTime());
+    	
+    	off = user.userLastModifiedDate().atOffset(ZoneOffset.of("-00:00"));
+    	//zoned = off.atZoneSameInstant(ZoneId.systemDefault());
+    	domainUser.setUpdateDate(off.toLocalDateTime());
+    	
+    	domainUser.setProviderName(Consts.LOCAL_PROVIDER_NAME);
+    	if (user.userStatus() == null || user.userStatus().equals("EXTERNAL_PROVIDER"))
+    	{
+    		domainUser.setProviderName("EXTERNAL");
+    	}
+    	
+        user.userAttributes().stream().forEach( att -> {
+        	if (att.name().equals("name")) domainUser.setName(att.value());
+        	if (att.name().equals("email")) domainUser.setEmail(att.value());
+        	if (att.name().equals("sub")) domainUser.setOidcId(att.value());
+        	if (att.name().equals("identities")) domainUser.setProviderName("EXTERNAL");
+        });
+        
+        return domainUser;
+	}	
+
+	public static String getProviderName(OAuth2User oauthUser)
+	{
+		String providerName = "";
+		if (oauthUser != null) {
+			providerName = Consts.LOCAL_PROVIDER_NAME;
+			
+			Object identities = oauthUser.getAttribute("identities");
+			if (identities instanceof ArrayList atts) 
+			{
+				Object object = atts.get(0);
+				if(object instanceof LinkedTreeMap map) {
+					providerName = map.get("providerName").toString();
+				}
+			}
+		}
+		return providerName;
 	}
 }

@@ -1,12 +1,12 @@
 package cms.api.controller;
 
+import java.util.Collection;
 import java.util.List;
 import java.util.stream.Collectors;
 
 import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
-import org.springframework.util.StringUtils;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -27,18 +27,12 @@ import cms.domain.model.User;
 import cms.domain.model.UserRole;
 import cms.domain.model.UserUpdateDto;
 import cms.domain.service.UserService;
-import cms.repository.UserRepository;
-import cms.repository.UserRoleRepository;
 import jakarta.validation.Valid;
 
 @RestController()
 @RequestMapping("/api/users")
 public class UserController implements UserControllerDoc {
 
-	@Autowired
-	UserRepository userRep;
-	@Autowired
-	UserRoleRepository userRoleRep;
 	@Autowired
 	UserService userService;
 	@Autowired
@@ -49,15 +43,8 @@ public class UserController implements UserControllerDoc {
 	@GetMapping
 	public List<UserModel>  list(@RequestParam(required = false) String email)
 	{
-		List<User> list = null;
-		if (StringUtils.hasText(email)) 
-		{
-			list = userRep.findByEmail(email);
-		}
-		else 
-		{
-			list = userRep.findAll();
-		}
+		Collection<User> list = userService.list(email);
+		
 		return list.stream()
 				.map(u -> modelMapper.map(u, UserModel.class))
 				.collect(Collectors.toList()); 
@@ -67,9 +54,7 @@ public class UserController implements UserControllerDoc {
 	@GetMapping("/{oidcId}")
 	public UserRoleModel  recover(@PathVariable String oidcId){
 		
-		UserRole user = userRoleRep.findByOidcId(oidcId);
-		
-		user = userService.recoverUserRole(oidcId);
+		UserRole user = userService.recoverUserRole(oidcId);
 		
 		return modelMapper.map(user, UserRoleModel.class);
 	}

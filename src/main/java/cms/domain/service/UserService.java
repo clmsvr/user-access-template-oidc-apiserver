@@ -1,11 +1,17 @@
 package cms.domain.service;
 
+import java.util.Collection;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
+
 import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.dao.EmptyResultDataAccessException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.util.StringUtils;
 
 import cms.components.Cognito;
 import cms.domain.Consts;
@@ -44,6 +50,15 @@ public class UserService
 	{
 		User user = userRep.findByOidcId(oidcId);
 		
+		try {
+			if (user == null) {
+				User u = cognito.getUser(oidcId);
+			    user = modelMapper.map(u, User.class);
+			}
+		} catch (UserNotFoundException e) {
+			
+		}
+		
 		if (user == null) throw new NotFoundException( String.format(MSG_NOT_FOUND, oidcId));
 		return user;
 	}
@@ -53,6 +68,15 @@ public class UserService
 	throws NotFoundException
 	{
 		UserRole user = userRoleRep.findByOidcId(oidcId);
+		
+		try {
+			if (user == null) {
+				User u = cognito.getUser(oidcId);
+			    user = modelMapper.map(u, UserRole.class);
+			}
+		} catch (UserNotFoundException e) {
+			
+		}
 		
 		if (user == null) throw new NotFoundException( String.format(MSG_NOT_FOUND, oidcId));
 		return user;
@@ -122,5 +146,34 @@ public class UserService
 
 		//a transação vai garantir que se houver erro, o usuario nao será removido do banco.
 		cognito.removeUser(oidcId);
+	}
+
+	public Collection<User> list(String email) 
+	{
+		List<User> listLocal = null;
+		if (StringUtils.hasText(email)) 
+		{
+			listLocal = userRep.findByEmail(email);
+		}
+		else 
+		{
+			listLocal = userRep.findAll();
+		}
+		
+		HashMap<String,User> mapCognito = null;
+		if (StringUtils.hasText(email)) 
+		{
+			mapCognito = cognito.mapUsers(email);
+		}
+		else 
+		{
+			mapCognito = cognito.mapUsers();
+		}
+		
+		final HashMap<String,User> finalMap = mapCognito;
+		
+		listLocal.stream().forEach(i -> finalMap.put(i.getOidcId(), i));
+		
+		return mapCognito.values();
 	}	
 }
