@@ -4,11 +4,18 @@ import java.time.OffsetDateTime;
 import java.time.ZoneOffset;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.oauth2.core.user.OAuth2User;
 import org.springframework.stereotype.Component;
 import org.springframework.util.StringUtils;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.JsonMappingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.nimbusds.jose.shaded.gson.internal.LinkedTreeMap;
 
 import cms.domain.Consts;
@@ -42,6 +49,9 @@ public class Cognito {
 
 	private CognitoProperties             properties;
 	private CognitoIdentityProviderClient client;
+	
+	@Autowired
+	ObjectMapper objectMapper;
 	
 	public Cognito(CognitoProperties securityProperties) {
 		
@@ -213,7 +223,7 @@ public class Cognito {
         	domainUser.setUpdateDate(off.toLocalDateTime());
         	
         	domainUser.setProviderName(Consts.LOCAL_PROVIDER_NAME);
-        	if (user.userStatus() == null || user.userStatus().equals("EXTERNAL_PROVIDER"))
+        	if (user.userStatusAsString() == null || user.userStatusAsString().equals("EXTERNAL_PROVIDER"))
         	{
         		domainUser.setProviderName("EXTERNAL");
         	}
@@ -222,7 +232,6 @@ public class Cognito {
             	if (att.name().equals("name")) domainUser.setName(att.value());
             	if (att.name().equals("email")) domainUser.setEmail(att.value());
             	if (att.name().equals("sub")) domainUser.setOidcId(att.value());
-            	if (att.name().equals("identities")) domainUser.setProviderName("EXTERNAL");
             });
             
             map.put(domainUser.getOidcId(), domainUser);
@@ -262,6 +271,15 @@ public class Cognito {
         	if (att.name().equals("email")) domainUser.setEmail(att.value());
         	if (att.name().equals("sub")) domainUser.setOidcId(att.value());
         	if (att.name().equals("identities")) domainUser.setProviderName("EXTERNAL");
+        	if (att.name().equals("identities")) {
+        		domainUser.setProviderName("EXTERNAL");
+        		try {
+					var obj = objectMapper.readValue(att.value(), 
+									 new TypeReference<List<Map<String, String>>>(){} );
+					domainUser.setProviderName(obj.get(0).get("providerName"));
+				} catch (Exception e) {
+				}
+        	}        	
         });
         
         return domainUser;
