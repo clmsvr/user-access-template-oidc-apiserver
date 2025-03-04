@@ -75,14 +75,12 @@ public class SecurityConfig {
             .oauth2Login(Customizer.withDefaults())
             .oauth2ResourceServer(cust -> {
 				//cust.opaqueToken(t -> {}); //Considera todos os Tokens como OPACO, e faz a introspecção (mesmo se for um token JWT).
-				//JWT - SEM introspecção
 				cust.jwt(jwtCust ->     
 				    //ler as authorities
-					jwtCust.jwtAuthenticationConverter(jwtAuthenticationConverter())
-				);
-			})
-            ;
-		;
+					jwtCust.jwtAuthenticationConverter(jwtAuthenticationConverter()));
+			});
+
+		
 		return http.build();
 	}
 

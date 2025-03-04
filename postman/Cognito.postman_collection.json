@@ -1,0 +1,648 @@
+{
+	"info": {
+		"_postman_id": "a4df0fe4-3fe1-4a1a-889d-912bd95eba65",
+		"name": "Cognito",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+		"_exporter_id": "27014757"
+	},
+	"item": [
+		{
+			"name": "Discovery-OpenID Provider Configuration Request",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"var resp = pm.response.json();\r",
+							"pm.environment.set(\"cognito_authorization_endpoint\" , resp.authorization_endpoint);\r",
+							"pm.environment.set(\"cognito_end_session_endpoint\" , resp.end_session_endpoint);\r",
+							"pm.environment.set(\"cognito_issuer\" , resp.issuer);\r",
+							"pm.environment.set(\"cognito_jwks_uri\" , resp.jwks_uri);\r",
+							"pm.environment.set(\"cognito_revocation_endpoint\" , resp.revocation_endpoint);\r",
+							"pm.environment.set(\"cognito_token_endpoint\" , resp.token_endpoint);\r",
+							"pm.environment.set(\"cognito_userinfo_endpoint\" , resp.userinfo_endpoint);\r",
+							""
+						],
+						"type": "text/javascript",
+						"packages": {}
+					}
+				},
+				{
+					"listen": "prerequest",
+					"script": {
+						"exec": [
+							""
+						],
+						"type": "text/javascript",
+						"packages": {}
+					}
+				}
+			],
+			"protocolProfileBehavior": {
+				"disabledSystemHeaders": {}
+			},
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "https://cognito-idp.us-east-1.amazonaws.com/{{cognito_pool}}/.well-known/openid-configuration",
+					"protocol": "https",
+					"host": [
+						"cognito-idp",
+						"us-east-1",
+						"amazonaws",
+						"com"
+					],
+					"path": [
+						"{{cognito_pool}}",
+						".well-known",
+						"openid-configuration"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Client Credentials",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"var resp = pm.response.json();\r",
+							"pm.environment.set(\"access_token\" , resp.access_token);\r",
+							"\r",
+							""
+						],
+						"type": "text/javascript",
+						"packages": {}
+					}
+				}
+			],
+			"request": {
+				"auth": {
+					"type": "basic",
+					"basic": [
+						{
+							"key": "password",
+							"value": "16pgjbvjqelcado3lse6gp8vtmngb5l5p1b9evkl1jg8l8p8mu6e",
+							"type": "string"
+						},
+						{
+							"key": "username",
+							"value": "7d2hsth3pe9rd77vitasjijdc6",
+							"type": "string"
+						}
+					]
+				},
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "formdata",
+					"formdata": [
+						{
+							"key": "scope",
+							"value": "read write",
+							"description": "se não informar o escopo desejado, o token será gerado sem nenhum escopo.",
+							"type": "default"
+						},
+						{
+							"key": "grant_type",
+							"value": "client_credentials",
+							"type": "default"
+						}
+					]
+				},
+				"url": {
+					"raw": "{{cognito_token_endpoint}}",
+					"host": [
+						"{{cognito_token_endpoint}}"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Authorization Code - AUTHORIZE",
+			"request": {
+				"auth": {
+					"type": "noauth"
+				},
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "https://us-east-1fssjl3xir.auth.us-east-1.amazoncognito.com/oauth2/authorize?response_type=code&client_id=j5ifq77iqp38769eun48lat3&scope=openid profile email phone&state=abs&redirect_uri=https://oidcdebugger.com/debug",
+					"protocol": "https",
+					"host": [
+						"us-east-1fssjl3xir",
+						"auth",
+						"us-east-1",
+						"amazoncognito",
+						"com"
+					],
+					"path": [
+						"oauth2",
+						"authorize"
+					],
+					"query": [
+						{
+							"key": "response_type",
+							"value": "code"
+						},
+						{
+							"key": "client_id",
+							"value": "j5ifq77iqp38769eun48lat3"
+						},
+						{
+							"key": "scope",
+							"value": "openid profile email phone"
+						},
+						{
+							"key": "state",
+							"value": "abs"
+						},
+						{
+							"key": "redirect_uri",
+							"value": "https://oidcdebugger.com/debug"
+						},
+						{
+							"key": "redirect_uri",
+							"value": "http://localhost:8080/login/oauth2/code/cognito",
+							"disabled": true
+						},
+						{
+							"key": "nonce",
+							"value": "abc",
+							"disabled": true
+						}
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Autorization Code - TOKEN",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"if (pm.response  === undefined) return;\r",
+							"var resp = pm.response.json();\r",
+							"pm.environment.set(\"access_token\" , resp.access_token);\r",
+							"pm.environment.set(\"refresh_token\" , resp.refresh_token);\r",
+							"\r",
+							"\r",
+							""
+						],
+						"type": "text/javascript",
+						"packages": {}
+					}
+				},
+				{
+					"listen": "prerequest",
+					"script": {
+						"exec": [
+							""
+						],
+						"type": "text/javascript",
+						"packages": {}
+					}
+				}
+			],
+			"protocolProfileBehavior": {
+				"disabledSystemHeaders": {
+					"accept": true
+				}
+			},
+			"request": {
+				"auth": {
+					"type": "basic",
+					"basic": [
+						{
+							"key": "username",
+							"value": "{{cognito-client-id}}",
+							"type": "string"
+						},
+						{
+							"key": "password",
+							"value": "{{cognito-client-secret}}",
+							"type": "string"
+						}
+					]
+				},
+				"method": "POST",
+				"header": [
+					{
+						"key": "Accept",
+						"value": "application/json;charset=UTF-8",
+						"type": "text"
+					}
+				],
+				"body": {
+					"mode": "urlencoded",
+					"urlencoded": [
+						{
+							"key": "grant_type",
+							"value": "authorization_code",
+							"type": "text"
+						},
+						{
+							"key": "code",
+							"value": "b039a928-3869-4845-a172-97d7a0253c1e",
+							"type": "text"
+						},
+						{
+							"key": "redirect_uri",
+							"value": "http://localhost:8080/login/oauth2/code/cognito",
+							"type": "text",
+							"disabled": true
+						},
+						{
+							"key": "redirect_uri",
+							"value": "https://oidcdebugger.com/debug",
+							"type": "text"
+						}
+					]
+				},
+				"url": {
+					"raw": "{{cognito_token_endpoint}}",
+					"host": [
+						"{{cognito_token_endpoint}}"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "PKCE Authoriz. Code - AUTHORIZE",
+			"request": {
+				"auth": {
+					"type": "noauth"
+				},
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "https://us-east-1fssjl3xir.auth.us-east-1.amazoncognito.com/oauth2/authorize?response_type=code&client_id=j5ifq77iqp38769eun48lat3&scope=email openid phone&redirect_uri=http://localhost:8080/login/oauth2/code/cognito&code_challenge=bKE9UspwyIPg8LsQHkJaiehiTeUdstI5JZOvaoQRgJA&code_challenge_method=S256",
+					"protocol": "https",
+					"host": [
+						"us-east-1fssjl3xir",
+						"auth",
+						"us-east-1",
+						"amazoncognito",
+						"com"
+					],
+					"path": [
+						"oauth2",
+						"authorize"
+					],
+					"query": [
+						{
+							"key": "state",
+							"value": "abc",
+							"disabled": true
+						},
+						{
+							"key": "response_type",
+							"value": "code"
+						},
+						{
+							"key": "client_id",
+							"value": "j5ifq77iqp38769eun48lat3"
+						},
+						{
+							"key": "scope",
+							"value": "email openid phone",
+							"description": "se não informar o escopo desejado, o token será gerado sem nenhum escopo."
+						},
+						{
+							"key": "redirect_uri",
+							"value": "http://localhost:8080/login/oauth2/code/cognito"
+						},
+						{
+							"key": "code_challenge",
+							"value": "bKE9UspwyIPg8LsQHkJaiehiTeUdstI5JZOvaoQRgJA",
+							"description": "abc123"
+						},
+						{
+							"key": "code_challenge_method",
+							"value": "S256"
+						}
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "PKCE Authoriz. Code - TOKEN",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"var resp = pm.response.json();\r",
+							"pm.environment.set(\"access_token\" , resp.access_token);\r",
+							"pm.environment.set(\"refresh_token\" , resp.refresh_token);\r",
+							"\r",
+							"\r",
+							""
+						],
+						"type": "text/javascript",
+						"packages": {}
+					}
+				}
+			],
+			"request": {
+				"auth": {
+					"type": "basic",
+					"basic": [
+						{
+							"key": "password",
+							"value": "{{cognito-client-secret}}",
+							"type": "string"
+						},
+						{
+							"key": "username",
+							"value": "{{cognito-client-id}}",
+							"type": "string"
+						}
+					]
+				},
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "urlencoded",
+					"urlencoded": [
+						{
+							"key": "grant_type",
+							"value": "authorization_code",
+							"type": "text"
+						},
+						{
+							"key": "code",
+							"value": "55f629ac-5a8f-40fc-8570-c8b9b57377ed",
+							"type": "text"
+						},
+						{
+							"key": "redirect_uri",
+							"value": "http://localhost:8080/login/oauth2/code/cognito",
+							"type": "text"
+						},
+						{
+							"key": "code_verifier",
+							"value": "abc123",
+							"type": "text"
+						}
+					]
+				},
+				"url": {
+					"raw": "{{cognito_token_endpoint}}",
+					"host": [
+						"{{cognito_token_endpoint}}"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Server Public JWKS",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							""
+						],
+						"type": "text/javascript",
+						"packages": {}
+					}
+				},
+				{
+					"listen": "prerequest",
+					"script": {
+						"exec": [
+							""
+						],
+						"type": "text/javascript",
+						"packages": {}
+					}
+				}
+			],
+			"protocolProfileBehavior": {
+				"disableBodyPruning": true
+			},
+			"request": {
+				"auth": {
+					"type": "noauth"
+				},
+				"method": "GET",
+				"header": [],
+				"body": {
+					"mode": "urlencoded",
+					"urlencoded": []
+				},
+				"url": {
+					"raw": "{{cognito_jwks_uri}}",
+					"host": [
+						"{{cognito_jwks_uri}}"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Refresh Token",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"var resp = pm.response.json();\r",
+							"pm.environment.set(\"access_token\" , resp.access_token);\r",
+							"pm.environment.set(\"refresh_token\" , resp.refresh_token);\r",
+							"\r",
+							"\r",
+							""
+						],
+						"type": "text/javascript",
+						"packages": {}
+					}
+				},
+				{
+					"listen": "prerequest",
+					"script": {
+						"exec": [
+							""
+						],
+						"type": "text/javascript",
+						"packages": {}
+					}
+				}
+			],
+			"request": {
+				"auth": {
+					"type": "basic",
+					"basic": [
+						{
+							"key": "password",
+							"value": "{{cognito-client-secret}}",
+							"type": "string"
+						},
+						{
+							"key": "username",
+							"value": "{{cognito-client-id}}",
+							"type": "string"
+						}
+					]
+				},
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "urlencoded",
+					"urlencoded": [
+						{
+							"key": "grant_type",
+							"value": "refresh_token",
+							"type": "text"
+						},
+						{
+							"key": "refresh_token",
+							"value": "{{refresh_token}}",
+							"type": "text"
+						}
+					]
+				},
+				"url": {
+					"raw": "{{cognito_token_endpoint}}",
+					"host": [
+						"{{cognito_token_endpoint}}"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Revoke Token",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							""
+						],
+						"type": "text/javascript",
+						"packages": {}
+					}
+				},
+				{
+					"listen": "prerequest",
+					"script": {
+						"exec": [
+							""
+						],
+						"type": "text/javascript",
+						"packages": {}
+					}
+				}
+			],
+			"request": {
+				"auth": {
+					"type": "basic",
+					"basic": [
+						{
+							"key": "password",
+							"value": "16pgjbvjqelcado3lse6gp8vtmngb5l5p1b9evkl1jg8l8p8mu6e",
+							"type": "string"
+						},
+						{
+							"key": "username",
+							"value": "7d2hsth3pe9rd77vitasjijdc6",
+							"type": "string"
+						}
+					]
+				},
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "formdata",
+					"formdata": [
+						{
+							"key": "token",
+							"value": "{{refresh_token}}",
+							"type": "default",
+							"disabled": true
+						},
+						{
+							"key": "token",
+							"value": "{{access_token}}",
+							"type": "text"
+						}
+					]
+				},
+				"url": {
+					"raw": "{{cognito_revocation_endpoint}}",
+					"host": [
+						"{{cognito_revocation_endpoint}}"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "logout",
+			"protocolProfileBehavior": {
+				"disabledSystemHeaders": {}
+			},
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "{{cognito_end_session_endpoint}}",
+					"host": [
+						"{{cognito_end_session_endpoint}}"
+					],
+					"query": [
+						{
+							"key": "id_token_hint",
+							"value": "eyJraWQiOiJvSTdya29hWlBPNVNBXC9oclhWV01lT2tPVldZM0JBVnM1Z3Qxb2ptMjYyQT0iLCJhbGciOiJSUzI1NiJ9.eyJhdF9oYXNoIjoiaWJSTExVMU5YTDdhSTlFY3BXTS10QSIsInN1YiI6ImI0ODg0NGQ4LWQwZjEtNzBmNi0yMWMwLWYxZWMxMDQ4YjY4NCIsImVtYWlsX3ZlcmlmaWVkIjp0cnVlLCJpc3MiOiJodHRwczpcL1wvY29nbml0by1pZHAudXMtZWFzdC0xLmFtYXpvbmF3cy5jb21cL3VzLWVhc3QtMV8xVGpVTmxIV3oiLCJjb2duaXRvOnVzZXJuYW1lIjoiYjQ4ODQ0ZDgtZDBmMS03MGY2LTIxYzAtZjFlYzEwNDhiNjg0Iiwibm9uY2UiOiJSQkR0d0ZnX1…XQiOjE3NDAwMTQyMDEsImp0aSI6ImM3ODc4NDFhLTA3NzYtNDBiYi1iMzMyLTRmZmM2OWFmZmNiNyIsImVtYWlsIjoiY2wuc2lsdmVpcmFAZ21haWwuY29tIn0.ECE6tp-QMcjB7xTE197eyYamQjeTjI9HDUYmE0bVm2OCEQL0o4DAyzeX8i9biSikM98osFHF3bdKXXHkwTG5BdYXYs7IVJQCXIQfaZ4Cy2Yn5icUgh1Myjdlt5s_5AjZpi3yQWUva4EOpqrzO_S3gI9kkMSoa5RxcMvyqUOUTDX50iXG6atui9cb2zVCFSn-NupeSsYhTjoocRkPsPyAsYKFwu2n83XuHgLz6GJvNEf8ucElNcd6zwOuPZQLsGOjPbDeh3QOuFsMzSwYTYPVDxnBVT2Wn0XMh2yaa8yGox3aXuPQ0UHQNdCIoo7NBVoFjgevTBfLiSiGl32pk87EMw",
+							"disabled": true
+						},
+						{
+							"key": "post_logout_redirect_uri",
+							"value": "http://localhost:8080",
+							"disabled": true
+						}
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "userInfo",
+			"protocolProfileBehavior": {
+				"disabledSystemHeaders": {}
+			},
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "{{access_token}}",
+							"type": "string"
+						}
+					]
+				},
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "{{cognito_userinfo_endpoint}}",
+					"host": [
+						"{{cognito_userinfo_endpoint}}"
+					]
+				}
+			},
+			"response": []
+		}
+	]
+}
