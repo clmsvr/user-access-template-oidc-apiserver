@@ -12,6 +12,7 @@ Recursos Adicionados
 
 * API Rest para acesso e atualização de dados do usuário.
 * API Doc com Swagger UI e SpringDoc.
+* Testes de API Rest e Web com uso de WireMock e MockMvc
 
 #### Setup
 
