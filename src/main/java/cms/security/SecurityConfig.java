@@ -66,6 +66,7 @@ public class SecurityConfig {
 					.requestMatchers("/admin/**").hasRole("Admin") //usando "/admin/*" '/admin' NAO estará incluso, somente paths abaixo.
 					.anyRequest().authenticated()
 			)
+			.cors(cust -> {})
 			//importante desativar CSRF para as uris da API Rest.
 			.csrf(c -> c.ignoringRequestMatchers(new AntPathRequestMatcher("/api/**")))
             .logout(logout -> 

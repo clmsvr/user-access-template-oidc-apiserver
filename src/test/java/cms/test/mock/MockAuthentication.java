@@ -8,6 +8,7 @@ import java.io.InputStream;
 import java.security.KeyStore;
 import java.security.KeyStoreException;
 import java.security.NoSuchAlgorithmException;
+import java.security.Principal;
 import java.security.cert.CertificateException;
 import java.text.ParseException;
 import java.time.Instant;
@@ -21,11 +22,19 @@ import java.util.stream.Collectors;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.io.Resource;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.Authentication;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
+import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.core.userdetails.User;
 import org.springframework.security.oauth2.client.authentication.OAuth2AuthenticationToken;
 import org.springframework.security.oauth2.core.user.DefaultOAuth2User;
 import org.springframework.security.oauth2.jwt.Jwt;
+import org.springframework.security.oauth2.jwt.JwtClaimsSet;
+import org.springframework.security.oauth2.jwt.JwtEncoder;
+import org.springframework.security.oauth2.jwt.JwtEncoderParameters;
+import org.springframework.security.oauth2.jwt.NimbusJwtEncoder;
 import org.springframework.security.oauth2.server.resource.authentication.JwtAuthenticationToken;
 import org.springframework.stereotype.Component;
 
@@ -36,7 +45,12 @@ import com.nimbusds.jose.JWSSigner;
 import com.nimbusds.jose.JWSVerifier;
 import com.nimbusds.jose.crypto.RSASSASigner;
 import com.nimbusds.jose.crypto.RSASSAVerifier;
+import com.nimbusds.jose.jwk.JWKSet;
+import com.nimbusds.jose.jwk.KeyUse;
 import com.nimbusds.jose.jwk.RSAKey;
+import com.nimbusds.jose.jwk.source.ImmutableJWKSet;
+import com.nimbusds.jose.jwk.source.JWKSource;
+import com.nimbusds.jose.proc.SecurityContext;
 import com.nimbusds.jwt.JWTClaimsSet;
 import com.nimbusds.jwt.SignedJWT;
 
@@ -131,7 +145,20 @@ public class MockAuthentication {
         return new OAuth2AuthenticationToken(defaultOAuth2User, defaultOAuth2User.getAuthorities(), 
         		"mockClientId");
     }
-    	
+    
+    public static UsernamePasswordAuthenticationToken getUsernamePasswordAuthenticationToken(
+    		String userName, String password, List<String> authorities)
+    {
+        Set<GrantedAuthority> mappedAuthorities = authorities.stream()
+        		.map(a -> new SimpleGrantedAuthority(a))
+        		.collect(Collectors.toSet());
+        
+        User user = new User(userName, password, mappedAuthorities);
+        
+        return  new UsernamePasswordAuthenticationToken(
+        	 user, password, mappedAuthorities);
+    }
+    
 	public static JwtAuthenticationToken getJwtAuthenticationToken(String oidcid, String name, String email, 
 			List<String> authorities) 
 	{
@@ -173,11 +200,9 @@ public class MockAuthentication {
     	
     	//RSAKey rsaPublicJWK = rsaJWK.toPublicJWK();
 
-    	// Create RSA-signer with the private key
-    	JWSSigner signer = new RSASSASigner(rsaJWK);
+    	//Date expirationDate = new Date(new Date().getTime() + 1000*60*60*24);
+    	Instant expiration = Instant.now().plusSeconds(60*60*24);
     	
-    	Date expirationDate = new Date(new Date().getTime() + 1000*60*60*24);
-
     	// Prepare JWT with claims set
 		JWTClaimsSet claimsSet = new JWTClaimsSet.Builder()
 			  .subject(oidcid) //sub
@@ -186,7 +211,8 @@ public class MockAuthentication {
 			  .claim("email", email)
 		      .issuer("http://localhost:8090") //iss
 		      .claim("scope", scope)
-		      .expirationTime(expirationDate)
+		      .issueTime( Date.from(Instant.now()) )
+		      .expirationTime( Date.from(expiration) )
 		      .jwtID(UUID.randomUUID().toString()) //jti			  
 			  .build();
 
@@ -198,6 +224,8 @@ public class MockAuthentication {
 		
     	SignedJWT signedJWT = new SignedJWT(header, claimsSet);
 
+    	// Create RSA-signer with the private key
+    	JWSSigner signer = new RSASSASigner(rsaJWK);
     	// Compute the RSA signature
     	signedJWT.sign(signer);
 
@@ -215,9 +243,7 @@ public class MockAuthentication {
 			    "kid", KEY_ID
 		);
 		//Construir Token OAuth2
-		Jwt jwt = new Jwt(token,Instant.now(), expirationDate.toInstant(),
-				jwtHeaders,
-				claimsSet.getClaims());
+		Jwt jwt = new Jwt(token,Instant.now(), expiration, jwtHeaders, claimsSet.getClaims());
 		
     	return jwt;
     }
@@ -239,56 +265,146 @@ public class MockAuthentication {
     	
     	//obter o keystore (do aplication.properties - armazenado no formato BASE64)
     	char[] keyStorePass = properties.getPassword().toCharArray();
-        String keypairAlias = properties.getKeypairAlias(); //!!!! este valor vai ir no "kid" do header do Token e deve bater com o valor informado no JWKS !!!
+        String keypairAlias = properties.getKeypairAlias(); 
         Resource jksResource = properties.getJksLocation();
         
-        //ler o keystore
+
+        //ler o keystore (solucao 1)
         InputStream inputStream = jksResource.getInputStream();
         KeyStore keyStore = KeyStore.getInstance("JKS");//java key store
-        keyStore.load(inputStream, keyStorePass);
+        keyStore.load(inputStream, keyStorePass); 
 
-        //projeto Nimbus
+        //projeto Nimbus :  RSAKey extends JWK
+        //!!!! 'keypairAlias' irá no "kid" do header do Token e deve bater com o valor informado no JWKS !!!
+        //Desta forma o "kid" será definido com o valor de 'keypairAlias'.
         RSAKey rsaKey = RSAKey.load(keyStore, keypairAlias, keyStorePass); 
+        rsaKey = new RSAKey.Builder(rsaKey)
+        		.keyUse(KeyUse.SIGNATURE)  //opcional
+        		.algorithm(JWSAlgorithm.RS256) //opcional
+        		.keyID(KEY_ID)
+        		.build();   //redefino o 'kid'     
+        
+//      //ler o keystore (solucao 2)
+//		var factory = new KeyStoreKeyFactory(properties.getJksLocation(), keyStorePass, "JKS");
+//		KeyPair keypair = factory.getKeyPair(keypairAlias);
+//		
+//		//projeto Nimbus :  RSAKey extends JWK (nimbus)
+//		RSAKey rsaKey = new RSAKey.Builder((RSAPublicKey) keypair.getPublic())
+//				.privateKey((RSAPrivateKey) keypair.getPrivate())
+//				.keyUse(KeyUse.SIGNATURE) //opcional
+//				.algorithm(JWSAlgorithm.RS256) //opcional
+//				.keyID(KEY_ID) //posso definir o 'kid'
+//				.build();       
+
         return rsaKey;
     }
     
-    //doc
-    void decodeJwt(RSAKey rsaPublicJWK, String jwt) 
-	throws ParseException, JOSEException 
-	{
-		// On the consumer side, parse the JWS and verify its RSA signature
-		SignedJWT signedJWT = SignedJWT.parse(jwt);
 
-		JWSVerifier verifier = new RSASSAVerifier(rsaPublicJWK);
-		assertTrue(signedJWT.verify(verifier));
-
-		// Retrieve / verify the JWT claims according to the app requirements
-		assertEquals("alice", signedJWT.getJWTClaimsSet().getSubject());
-		assertEquals("https://c2id.com", signedJWT.getJWTClaimsSet().getIssuer());
-		assertTrue(new Date().before(signedJWT.getJWTClaimsSet().getExpirationTime()));
-	}
     
     
-//    //doc
-//	private String avaliaSeguranca(Principal p , @AuthenticationPrincipal Object ap) 
-//	{
-//		Authentication a = SecurityContextHolder.getContext().getAuthentication();
-//		Object p2 = a != null ? a.getPrincipal() : null;
-//		
-//		return "ok";
-//		/*
-//		ReseourceServer(JWT): autenticado com Jwt token
-//			- p e a   -> JwtAuthenticationToken 
-//			- ap e p2 -> Jwt
-//			
-//		OAuth Client (OIDC): autenticado com login de usuario via fluxo OAuth com OIDC
-//			- p e a   -> OAuth2AuthenticationToken 
-//			- ap e p2 -> DefaultOidcUser (OAuth2User e OidcUser)	
-//			
-//		Form Login :
-//			- p e a : UsernamePasswordAuthenticationToken 
-//			- ap e p2 : User (UserDetails , org.springframework.security.core.userdetails.User)
-//
-//		*/
-//	}    
+    
+    
+    
+    
+    //Somente para guardar como Documentacao
+    
+    class Docs {
+        //doc
+        void decodeJwt(RSAKey rsaPublicJWK, String jwt) 
+    	throws ParseException, JOSEException 
+    	{
+    		// On the consumer side, parse the JWS and verify its RSA signature
+    		SignedJWT signedJWT = SignedJWT.parse(jwt);
+
+    		JWSVerifier verifier = new RSASSAVerifier(rsaPublicJWK);
+    		assertTrue(signedJWT.verify(verifier));
+
+    		// Retrieve / verify the JWT claims according to the app requirements
+    		assertEquals("alice", signedJWT.getJWTClaimsSet().getSubject());
+    		assertEquals("https://c2id.com", signedJWT.getJWTClaimsSet().getIssuer());
+    		assertTrue(new Date().before(signedJWT.getJWTClaimsSet().getExpirationTime()));
+    	}
+        
+            
+        //doc
+    	String avaliaSeguranca(Principal p , /*@AuthenticationPrincipal*/ Object ap) 
+    	{
+    		Authentication a = SecurityContextHolder.getContext().getAuthentication();
+    		@SuppressWarnings("unused")
+    		Object p2 = a != null ? a.getPrincipal() : null;
+    		
+    		return "ok";
+    		/*
+    		ReseourceServer(JWT): autenticado com Jwt token
+    			- p e a   -> JwtAuthenticationToken 
+    			- ap e p2 -> Jwt
+    			
+    		OAuth Client (OIDC): autenticado com login de usuario via fluxo OAuth com OIDC
+    			- p e a   -> OAuth2AuthenticationToken 
+    			- ap e p2 -> DefaultOidcUser (OAuth2User e OidcUser)	
+    			
+    		Form Login :
+    			- p e a : UsernamePasswordAuthenticationToken 
+    			- ap e p2 : User (UserDetails , org.springframework.security.core.userdetails.User)
+
+    		*/
+    	} 
+    	
+    	
+    	
+        //Informa as Chaves RSA Publica e Privada para o AuthorizationServer gerar e assinar Tokens JWT.
+        //@Bean
+        public JWKSource<SecurityContext> jwkSource(KeyStoreProperties properties) 
+        throws IOException, NoSuchAlgorithmException, CertificateException, KeyStoreException, JOSEException 
+        {
+        	RSAKey rsaKey = getRSAKey(properties);
+            return new ImmutableJWKSet<>(new JWKSet(rsaKey));      
+        }
+        
+    	//@Bean
+    	JwtEncoder jwtEncoder(JWKSource<SecurityContext> jwks) {
+    		return new NimbusJwtEncoder(jwks);
+    	}
+    	
+    	
+    	public Jwt token(Authentication authentication, JwtEncoder encoder) 
+    	{
+    		Instant now = Instant.now();
+    		long expiry = 36000L; //10horas
+    		
+    		String scope = authentication.getAuthorities().stream()
+    				.map(GrantedAuthority::getAuthority)
+    				.collect(Collectors.joining(" "));
+    		
+    		JwtClaimsSet claims = JwtClaimsSet.builder()
+    				.issuer("self")
+    				.issuedAt(now)
+    				.expiresAt(now.plusSeconds(expiry))
+    				.subject(authentication.getName())
+    				.claim("scope", scope)
+    				.build();
+    		return encoder.encode(JwtEncoderParameters.from(claims)); //.getTokenValue();
+    	}
+    	
+    	//accesss token mock
+    	public Jwt token(JwtEncoder encoder, 
+    			         String oidcid, String name, String email, String scope) 
+    	throws JOSEException, NoSuchAlgorithmException, CertificateException, KeyStoreException, IOException 
+    	{
+    		JwtClaimsSet claims = JwtClaimsSet.builder()
+    				.subject(oidcid)
+    				.claim("username", oidcid)
+    				.claim("name", name)
+    				.claim("email", email)
+    				.issuer("http://localhost:8090") //iss
+    				.claim("scope", scope)
+    				.issuedAt(Instant.now())
+    				.expiresAt(Instant.now().plusSeconds(60*60*24))
+    				.claim("jti", UUID.randomUUID().toString())
+    				.build();
+    		return encoder.encode(JwtEncoderParameters.from(claims)); //.getTokenValue();
+    	}		
+    	
+    }
+
 }

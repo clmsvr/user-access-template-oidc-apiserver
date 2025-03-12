@@ -36,6 +36,6 @@ public class UserModel
     
     private String comment;       
     
-    private LocalDateTime   creationDate = LocalDateTime.now() ;
-    private LocalDateTime   updateDate = LocalDateTime.now() ; 
+    private LocalDateTime   creationDate ;
+    private LocalDateTime   updateDate  ; 
 }
